@@ -65,7 +65,9 @@ jobs:
 
     - name: Run FastAPI app on EC2
       run: |
-        ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@${{ steps.get_ip.outputs.ec2ip }} << EOF
+        ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@$(terraform output -raw instance_public_ip) << EOF
+          sudo apt update
+          sudo apt install -y python3-pip
           pip3 install fastapi uvicorn --user
           nohup ~/.local/bin/uvicorn main:app --host 0.0.0.0 --port 80 &
         EOF
