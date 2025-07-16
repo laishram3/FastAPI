@@ -49,33 +49,33 @@ resource "aws_security_group" "fastapi_sg" {
 }
 
 resource "aws_instance" "fastapi_server" {
-  ami             = "ami-053b0d53c279acc90"
-  instance_type   = "t2.micro"
-  key_name        = aws_key_pair.deployer.key_name
-  security_groups = [aws_security_group.fastapi_sg.name]
+  ami                         = "ami-053b0d53c279acc90"
+  instance_type               = "t2.micro"
+  key_name                    = aws_key_pair.deployer.key_name
+  security_groups             = [aws_security_group.fastapi_sg.name]
   associate_public_ip_address = true
-  user_data = file("user_data.sh")
+  user_data                   = file("user_data.sh")
 
-#   user_data = <<-EOF
-#   #!/bin/bash
-#   apt-get update -y
-#   apt-get install -y python3-pip
-#   pip3 install "fastapi[all]" uvicorn
+  #   user_data = <<-EOF
+  #   #!/bin/bash
+  #   apt-get update -y
+  #   apt-get install -y python3-pip
+  #   pip3 install "fastapi[all]" uvicorn
 
-#   cat > /home/ubuntu/main.py << EOL
-# from fastapi import FastAPI
+  #   cat > /home/ubuntu/main.py << EOL
+  # from fastapi import FastAPI
 
-# app = FastAPI()
+  # app = FastAPI()
 
-# @app.get("/")
-# def read_root():
-#     return {"Hello": "World"}
-# EOL
+  # @app.get("/")
+  # def read_root():
+  #     return {"Hello": "World"}
+  # EOL
 
-#   cd /home/ubuntu
-#   nohup uvicorn main:app --host 0.0.0.0 --port 80
-#    &
-# EOF
+  #   cd /home/ubuntu
+  #   nohup uvicorn main:app --host 0.0.0.0 --port 80
+  #    &
+  # EOF
 
 
   tags = {
@@ -85,7 +85,7 @@ resource "aws_instance" "fastapi_server" {
 
 resource "aws_key_pair" "deployer" {
   key_name   = "id_rsa"
-  public_key = file("~/.ssh/id_rsa.pub")
+  public_key = file("${path.module}/id_rsa.pub")
 }
 
 output "instance_public_ip" {
