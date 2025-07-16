@@ -43,7 +43,7 @@ jobs:
           aws-region: us-east-1
 
     - name: Wait for EC2 instance to be ready
-      run: sleep 60
+      run: sleep 30
 
     - name: Save private key
       run: |
@@ -61,7 +61,7 @@ jobs:
 
     - name: Upload main.py via SCP
       run: |
-        scp -i key.pem main.py ec2-user@$(terraform output -raw instance_public_ip):/home/ec2-user/main.py
+        scp -o StrictHostKeyChecking=no -i key.pem main.py ec2-user@$(terraform output -raw instance_public_ip):/home/ec2-user/main.py
 
     - name: Run FastAPI app on EC2
       run: |
