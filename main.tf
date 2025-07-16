@@ -67,7 +67,7 @@ resource "aws_iam_role" "ec2_dynamodb_role" {
 }
 
 #Attach DynamoDB Access Policy
-resource "aws_iam_policy" "dynamodb_full_access" {
+resource "aws_iam_policy" "dynamodb_full_access_policy" {
   name        = "DynamoDBFullAccessPolicy"
   description = "Allow full access to DynamoDB"
 
@@ -89,7 +89,7 @@ resource "aws_iam_policy" "dynamodb_full_access" {
 #Attach the Policy to the Role
 resource "aws_iam_role_policy_attachment" "attach_dynamodb_policy" {
   role       = aws_iam_role.ec2_dynamodb_role.name
-  policy_arn = aws_iam_policy.dynamodb_full_access.arn
+  policy_arn = aws_iam_policy.dynamodb_full_access_policy.arn
 }
 
 #Create Instance Profile and Attach to EC2
