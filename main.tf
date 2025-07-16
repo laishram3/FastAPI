@@ -84,7 +84,7 @@ resource "aws_instance" "fastapi_server" {
 }
 
 resource "aws_key_pair" "deployer" {
-  key_name   = "id_rsa"
+  key_name   = "id_rsaa"
   public_key = file("${path.module}/id_rsa.pub")
 }
 
