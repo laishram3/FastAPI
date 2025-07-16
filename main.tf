@@ -10,7 +10,7 @@ terraform {
 }
 
 provider "aws" {
-  region  = "us-east-1"
+  region = "us-east-1"
   # profile = "default"
 }
 
@@ -48,6 +48,56 @@ resource "aws_security_group" "fastapi_sg" {
   }
 }
 
+#Create IAM Role and Policy for DynamoDB
+resource "aws_iam_role" "ec2_dynamodb_role" {
+  name = "ec2-dynamodb-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+#Attach DynamoDB Access Policy
+resource "aws_iam_policy" "dynamodb_full_access" {
+  name        = "DynamoDBFullAccessPolicy"
+  description = "Allow full access to DynamoDB"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "dynamodb:*"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+
+#Attach the Policy to the Role
+resource "aws_iam_role_policy_attachment" "attach_dynamodb_policy" {
+  role       = aws_iam_role.ec2_dynamodb_role.name
+  policy_arn = aws_iam_policy.dynamodb_full_access.arn
+}
+
+#Create Instance Profile and Attach to EC2
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "ec2-dynamodb-instance-profile"
+  role = aws_iam_role.ec2_dynamodb_role.name
+}
+
 resource "aws_instance" "fastapi_server" {
   ami                         = "ami-053b0d53c279acc90"
   instance_type               = "t2.micro"
@@ -55,6 +105,7 @@ resource "aws_instance" "fastapi_server" {
   security_groups             = [aws_security_group.fastapi_sg.name]
   associate_public_ip_address = true
   user_data                   = file("user_data.sh")
+  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
 
   #   user_data = <<-EOF
   #   #!/bin/bash
