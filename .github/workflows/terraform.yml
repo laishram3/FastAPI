@@ -61,11 +61,11 @@ jobs:
 
     - name: Upload main.py via SCP
       run: |
-        scp -o StrictHostKeyChecking=no -i key.pem main.py ec2-user@$(terraform output -raw instance_public_ip):/home/ec2-user/main.py
+        scp -o StrictHostKeyChecking=no -i key.pem main.py ubuntu@$(terraform output -raw instance_public_ip):/home/ubuntu/main.py
 
     - name: Run FastAPI app on EC2
       run: |
-        ssh -o StrictHostKeyChecking=no -i key.pem ec2-user@${{ steps.get_ip.outputs.ec2ip }} << EOF
+        ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@${{ steps.get_ip.outputs.ec2ip }} << EOF
           pip3 install fastapi uvicorn --user
           nohup ~/.local/bin/uvicorn main:app --host 0.0.0.0 --port 80 &
         EOF
