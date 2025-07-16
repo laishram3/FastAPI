@@ -105,7 +105,7 @@ resource "aws_instance" "fastapi_server" {
   security_groups             = [aws_security_group.fastapi_sg.name]
   associate_public_ip_address = true
   user_data                   = file("user_data.sh")
-  iam_instance_profile        = "ec2-dynamodb-role"
+  iam_instance_profile        = "ec2-dynamodb-instance-profile"
 
   #   user_data = <<-EOF
   #   #!/bin/bash
