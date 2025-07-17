@@ -10,4 +10,4 @@ cd app
 pip3 install fastapi uvicorn boto3
 
 # Start FastAPI in background on port 8000
-nohup uvicorn main:app --host 0.0.0.0 --port 80 > fastapi.log 2>&1 &
+nohup uvicorn main:app --host 0.0.0.0 --port 8000 > fastapi.log 2>&1 &
