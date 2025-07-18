@@ -14,6 +14,14 @@ provider "aws" {
   # profile = "default"
 }
 
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
+}
+
 resource "aws_security_group" "fastapi_sg" {
   name        = "fastapi-sg"
   description = "Allow HTTP and SSH traffic"
@@ -48,34 +56,6 @@ resource "aws_security_group" "fastapi_sg" {
   }
 }
 
-# /////
-
-# resource "aws_iam_role" "ec2_role" {
-#   name = "fastapi_ec2_rolee"
-
-#   assume_role_policy = jsonencode({
-#     Version = "2012-10-17",
-#     Statement = [{
-#       Action    = "sts:AssumeRole",
-#       Effect    = "Allow",
-#       Principal = {
-#         Service = "ec2.amazonaws.com"
-#       }
-#     }]
-#   })
-# }
-
-
-# resource "aws_iam_role_policy_attachment" "dynamodb_access" {
-#   role       = aws_iam_role.ec2_role.name
-#   policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
-# }
-
-# resource "aws_iam_instance_profile" "ec2_profile" {
-#   name = "fastapi_ec2_profilee"
-#   role = aws_iam_role.ec2_role.name
-# }
-
 
 resource "aws_instance" "fastapi_server" {
   ami                         = "ami-053b0d53c279acc90"
@@ -85,6 +65,7 @@ resource "aws_instance" "fastapi_server" {
   associate_public_ip_address = true
   user_data                   = file("user_data.sh")
   iam_instance_profile        = "ec2-dynamodb-instance-profile"
+  subnet_id                   = data.aws_subnet_ids.default.ids[0]
   tags = {
     Name = "FastAPI-Server"
   }
