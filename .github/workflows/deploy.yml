@@ -3,6 +3,9 @@ name: Deploy Workflow
 on:
   workflow_call:
     inputs:
+      dir:
+        required: true
+        type: string
       environment:
         required: true
         type: string
@@ -12,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     environment: ${{ inputs.environment }}
+    
 
     steps:
     - name: Checkout Repository
@@ -36,12 +40,15 @@ jobs:
 
     - name: Terraform Init
       run: terraform init
+      working-directory: ${{ inputs.dir }}
 
     - name: Terraform Plan
       run: terraform plan -out=tfplan
+      working-directory: ${{ inputs.dir }}
 
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan
+      working-directory: ${{ inputs.dir }}
       env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
