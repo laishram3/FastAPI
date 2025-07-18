@@ -14,6 +14,11 @@ provider "aws" {
   #profile = "default"
 }
 
+resource "random_integer" "key_suffix" {
+  min = 1000
+  max = 9999
+}
+
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
   tags = {
@@ -31,7 +36,7 @@ resource "aws_subnet" "public_subnet" {
   }
 }
 
-resource "aws_security_group" "fastapi_sg" {
+resource "aws_security_group" "fastapi_sg_br" {
   name        = "fastapi-sg"
   description = "Allow HTTP and SSH traffic"
   vpc_id      = aws_vpc.main.id
@@ -68,33 +73,35 @@ resource "aws_security_group" "fastapi_sg" {
 
 /////
 
-resource "aws_iam_role" "ec2_role" {
-  name = "fastapi_ec2_role"
+# resource "aws_iam_role" "ec2_role" {
+#   name = "fastapi_ec2_role"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Action    = "sts:AssumeRole",
-      Effect    = "Allow",
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      }
-    }]
-  })
+#   assume_role_policy = jsonencode({
+#     Version = "2012-10-17",
+#     Statement = [{
+#       Action    = "sts:AssumeRole",
+#       Effect    = "Allow",
+#       Principal = {
+#         Service = "ec2.amazonaws.com"
+#       }
+#     }]
+#   })
+# }
+
+
+# resource "aws_iam_role_policy_attachment" "dynamodb_access" {
+#   role       = aws_iam_role.ec2_role.name
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+# }
+
+# resource "aws_iam_instance_profile" "ec2_profile" {
+#   name = "fastapi_ec2_profilee"
+#   role = aws_iam_role.ec2_role.name
+# }
+
+data "aws_subnet" "public_subnet" {
+  id = "subnet-02d3502524c763556" 
 }
-
-
-resource "aws_iam_role_policy_attachment" "dynamodb_access" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
-}
-
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "fastapi_ec2_profilee"
-  role = aws_iam_role.ec2_role.name
-}
-
-
 
 
 resource "aws_instance" "fastapi_server" {
@@ -102,7 +109,7 @@ resource "aws_instance" "fastapi_server" {
   instance_type               = "t2.micro"
   key_name                    = aws_key_pair.deployer.key_name
   subnet_id     = aws_subnet.public_subnet.id 
-  security_groups             = [aws_security_group.fastapi_sg.id]
+  security_groups             = [aws_security_group.fastapi_sg_br.id]
   associate_public_ip_address = true
   user_data                   = file("${path.module}/../../user_data.sh")
   iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
@@ -110,9 +117,12 @@ resource "aws_instance" "fastapi_server" {
     Name = "FastAPI-Server"
   }
 }
-
+resource "random_integer" "key_suffix" {
+  min = 1000
+  max = 9999
+}
 resource "aws_key_pair" "deployer" {
-  key_name   = "id_rsa"
+  key_name   = "id_rsa_${random_integer.key_suffix.result}"
    public_key = file("${path.module}/../../id_rsa.pub")
 }
 
