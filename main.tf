@@ -65,7 +65,7 @@ resource "aws_instance" "fastapi_server" {
   associate_public_ip_address = true
   user_data                   = file("user_data.sh")
   iam_instance_profile        = "ec2-dynamodb-instance-profile"
-  subnet_id                   = data.aws_subnet_ids.default.ids[0]
+  subnet_id                   = tolist(data.aws_subnet_ids.default.ids)[0]
   tags = {
     Name = "FastAPI-Server"
   }
