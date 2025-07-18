@@ -48,33 +48,33 @@ resource "aws_security_group" "fastapi_sg" {
   }
 }
 
-/////
+# /////
 
-resource "aws_iam_role" "ec2_role" {
-  name = "fastapi_ec2_rolee"
+# resource "aws_iam_role" "ec2_role" {
+#   name = "fastapi_ec2_rolee"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Action    = "sts:AssumeRole",
-      Effect    = "Allow",
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      }
-    }]
-  })
-}
+#   assume_role_policy = jsonencode({
+#     Version = "2012-10-17",
+#     Statement = [{
+#       Action    = "sts:AssumeRole",
+#       Effect    = "Allow",
+#       Principal = {
+#         Service = "ec2.amazonaws.com"
+#       }
+#     }]
+#   })
+# }
 
 
-resource "aws_iam_role_policy_attachment" "dynamodb_access" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
-}
+# resource "aws_iam_role_policy_attachment" "dynamodb_access" {
+#   role       = aws_iam_role.ec2_role.name
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+# }
 
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "fastapi_ec2_profilee"
-  role = aws_iam_role.ec2_role.name
-}
+# resource "aws_iam_instance_profile" "ec2_profile" {
+#   name = "fastapi_ec2_profilee"
+#   role = aws_iam_role.ec2_role.name
+# }
 
 
 resource "aws_instance" "fastapi_server" {
@@ -84,7 +84,7 @@ resource "aws_instance" "fastapi_server" {
   security_groups             = [aws_security_group.fastapi_sg.name]
   associate_public_ip_address = true
   user_data                   = file("user_data.sh")
-  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
+  iam_instance_profile        = "ec2-dynamodb-instance-profile"
   tags = {
     Name = "FastAPI-Server"
   }
