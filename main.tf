@@ -18,8 +18,11 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnet_ids" "default" {
-  vpc_id = data.aws_vpc.default.id
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }
 
 resource "aws_security_group" "fastapi_sg" {
@@ -65,7 +68,7 @@ resource "aws_instance" "fastapi_server" {
   associate_public_ip_address = true
   user_data                   = file("user_data.sh")
   iam_instance_profile        = "ec2-dynamodb-instance-profile"
-  subnet_id                   = tolist(data.aws_subnet_ids.default.ids)[0]
+  subnet_id                   = tolist(data.aws_subnets.default.ids)[0]
   tags = {
     Name = "FastAPI-Server"
   }
