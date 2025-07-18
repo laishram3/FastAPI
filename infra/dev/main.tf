@@ -117,10 +117,7 @@ resource "aws_instance" "fastapi_server" {
     Name = "FastAPI-Server"
   }
 }
-resource "random_integer" "key_suffix" {
-  min = 1000
-  max = 9999
-}
+
 resource "aws_key_pair" "deployer" {
   key_name   = "id_rsa_${random_integer.key_suffix.result}"
    public_key = file("${path.module}/../../id_rsa.pub")
