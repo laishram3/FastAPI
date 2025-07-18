@@ -36,7 +36,7 @@ resource "random_integer" "key_suffix" {
 #   }
 # }
 data "aws_vpc" "selected" {
-  id = "vpc-09a726fb2e209ccdb"
+  id = "vpc-0308dfde65a558305"
 }
 
 resource "aws_security_group" "fastapi_sg_br" {
