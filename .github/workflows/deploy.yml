@@ -1,12 +1,17 @@
-name: Deploy FastAPI to EC2 with Terraform
+name: Deploy Workflow
 
 on:
-  push:
-    branches: [main]
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
 
     steps:
     - name: Checkout Repository
@@ -67,7 +72,7 @@ jobs:
 
     - name: Upload main.py via SCP
       run: |
-        scp -o StrictHostKeyChecking=no -i key.pem ${{ github.workspace }}/main.py ubuntu@$(terraform output -raw instance_public_ip):/home/ubuntu/main.py
+        scp -o StrictHostKeyChecking=no -i key.pem main.py ubuntu@$(terraform output -raw instance_public_ip):/home/ubuntu/main.py
 
     - name: Run FastAPI app on EC2
       run: |

@@ -1,22 +1,24 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.16"
-    }
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "main-vpc"
   }
-
-  required_version = ">= 1.2.0"
 }
 
-provider "aws" {
-  region = "us-east-1"
-  # profile = "default"
+resource "aws_subnet" "public_subnet" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "public-subnet"
+  }
 }
 
 resource "aws_security_group" "fastapi_sg" {
   name        = "fastapi-sg"
   description = "Allow HTTP and SSH traffic"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     from_port   = 8000
@@ -72,18 +74,21 @@ resource "aws_iam_role_policy_attachment" "dynamodb_access" {
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "fastapi_ec2_profile"
+  name = "fastapi_ec2_profilee"
   role = aws_iam_role.ec2_role.name
 }
+
+
 
 
 resource "aws_instance" "fastapi_server" {
   ami                         = "ami-053b0d53c279acc90"
   instance_type               = "t2.micro"
   key_name                    = aws_key_pair.deployer.key_name
-  security_groups             = [aws_security_group.fastapi_sg.name]
+  subnet_id     = aws_subnet.public_subnet.id 
+  security_groups             = [aws_security_group.fastapi_sg.id]
   associate_public_ip_address = true
-  user_data                   = file("user_data.sh")
+  user_data                   = file("${path.module}/../../user_data.sh")
   iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
   tags = {
     Name = "FastAPI-Server"
@@ -92,7 +97,7 @@ resource "aws_instance" "fastapi_server" {
 
 resource "aws_key_pair" "deployer" {
   key_name   = "id_rsa"
-  public_key = file("${path.module}/id_rsa.pub")
+   public_key = file("${path.module}/../../id_rsa.pub")
 }
 
 output "instance_public_ip" {
