@@ -1,5 +1,3 @@
-
-
 resource "aws_security_group" "fastapi_sg" {
   name        = "fastapi-sg"
   description = "Allow HTTP and SSH traffic"

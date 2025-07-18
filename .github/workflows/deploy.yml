@@ -59,6 +59,7 @@ jobs:
       run: |
           echo "Deployment failed. Rolling back..."
           terraform destroy -auto-approve
+          working-directory: ${{ inputs.dir }}
 
     - name: Wait for EC2 instance to be ready
       run: sleep 30

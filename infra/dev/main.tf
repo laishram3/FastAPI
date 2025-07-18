@@ -19,27 +19,30 @@ resource "random_integer" "key_suffix" {
   max = 9999
 }
 
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
-  tags = {
-    Name = "main-vpc"
-  }
-}
+# resource "aws_vpc" "main" {
+#   cidr_block = "10.0.0.0/16"
+#   tags = {
+#     Name = "main-vpc"
+#   }
+# }
 
-resource "aws_subnet" "public_subnet" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true
+# resource "aws_subnet" "public_subnet" {
+#   vpc_id                  = aws_vpc.main.id
+#   cidr_block              = "10.0.1.0/24"
+#   map_public_ip_on_launch = true
 
-  tags = {
-    Name = "public-subnet"
-  }
+#   tags = {
+#     Name = "public-subnet"
+#   }
+# }
+data "aws_vpc" "selected" {
+  id = "vpc-09a726fb2e209ccdb"
 }
 
 resource "aws_security_group" "fastapi_sg_br" {
   name        = "fastapi-sg"
   description = "Allow HTTP and SSH traffic"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.selected.id
 
   ingress {
     from_port   = 8000
@@ -99,6 +102,10 @@ resource "aws_security_group" "fastapi_sg_br" {
 #   role = aws_iam_role.ec2_role.name
 # }
 
+data "aws_iam_instance_profile" "ec2_profile" {
+  name = "fastapi_ec2_profilee"
+}
+
 data "aws_subnet" "public_subnet" {
   id = "subnet-02d3502524c763556" 
 }
@@ -108,11 +115,11 @@ resource "aws_instance" "fastapi_server" {
   ami                         = "ami-053b0d53c279acc90"
   instance_type               = "t2.micro"
   key_name                    = aws_key_pair.deployer.key_name
-  subnet_id     = aws_subnet.public_subnet.id 
+  subnet_id     = data.aws_subnet.public_subnet.id 
   security_groups             = [aws_security_group.fastapi_sg_br.id]
   associate_public_ip_address = true
   user_data                   = file("${path.module}/../../user_data.sh")
-  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
+  iam_instance_profile        = data.aws_iam_instance_profile.ec2_profile.name
   tags = {
     Name = "FastAPI-Server"
   }
