@@ -51,7 +51,7 @@ resource "aws_security_group" "fastapi_sg" {
 /////
 
 resource "aws_iam_role" "ec2_role" {
-  name = "fastapi_ec2_role"
+  name = "fastapi_ec2_rolee"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
