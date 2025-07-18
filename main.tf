@@ -107,6 +107,30 @@ resource "aws_key_pair" "my_key" {
   public_key = file("${path.module}/id_rsa.pub")
 }
 
+resource "aws_iam_role" "ec2_role" {
+  name = "ec2-fastapi-dynamodb-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action = "sts:AssumeRole",
+      Effect = "Allow",
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "dynamodb_attach" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess"
+}
+
+resource "aws_iam_instance_profile" "ec2_instance_profile" {
+  name = "ec2-fastapi-instance-profile"
+  role = aws_iam_role.ec2_role.name
+}
+
 # 8. Launch EC2 in Public Subnet
 resource "aws_instance" "public_ec2" {
   ami                         = "ami-053b0d53c279acc90" # Ubuntu 22.04 (us-east-1)
@@ -115,6 +139,7 @@ resource "aws_instance" "public_ec2" {
   associate_public_ip_address = true
   key_name                    = aws_key_pair.my_key.key_name
   security_groups             = [aws_security_group.public_sg.id]
+  iam_instance_profile        = aws_iam_instance_profile.ec2_instance_profile.name
 
   tags = {
     Name = "PublicDemoEC2"
