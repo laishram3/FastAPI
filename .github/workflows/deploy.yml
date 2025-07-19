@@ -1,12 +1,21 @@
-name: Deploy FastAPI to EC2 with Terraform
+name: Deploy Workflow
 
 on:
-  push:
-    branches: [main]
+  workflow_call:
+    inputs:
+      dir:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    environment: ${{ inputs.environment }}
+    
 
     steps:
     - name: Checkout Repository
@@ -31,16 +40,26 @@ jobs:
 
     - name: Terraform Init
       run: terraform init
+      working-directory: ${{ inputs.dir }}
 
     - name: Terraform Plan
       run: terraform plan -out=tfplan
+      working-directory: ${{ inputs.dir }}
 
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan
+      working-directory: ${{ inputs.dir }}
       env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+          
+    - name: Rollback if deployment fails
+      if: ${{ failure() }}
+      run: |
+          echo "Deployment failed. Rolling back..."
+          terraform destroy -auto-approve
+      working-directory: ${{ inputs.dir }}
 
     - name: Wait for EC2 instance to be ready
       run: sleep 30
@@ -52,23 +71,28 @@ jobs:
 
     - name: Get EC2 Public IP
       id: get_ip
+      working-directory: ${{ inputs.dir }}
       run: |
         IP=$(aws ec2 describe-instances \
-          --filters "Name=tag:Name,Values=fastapi-instance" \
+          --filters "Name=tag:Name,Values=FastAPI-ServerBranch" \
           --query "Reservations[0].Instances[0].PublicIpAddress" \
           --output text)
         echo "ec2ip=$IP" >> "$GITHUB_OUTPUT"
+        echo "$IP" 
+        echo "EC2 Public IP: $(terraform output -raw instance_public_ip)"
 
     - name: Upload main.py via SCP
+      working-directory: ${{ inputs.dir }}
       run: |
-        scp -o StrictHostKeyChecking=no -i key.pem main.py ubuntu@$(terraform output -raw instance_public_ip):/home/ubuntu/main.py
+        scp -o StrictHostKeyChecking=no -i ../../key.pem ../../main.py ubuntu@$(terraform output -raw instance_public_ip):/home/ubuntu/main.py
 
     - name: Run FastAPI app on EC2
+      working-directory: ${{ inputs.dir }}
       run: |
-        ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@$(terraform output -raw instance_public_ip) << EOF
+        ssh -o StrictHostKeyChecking=no -i ../../key.pem ubuntu@$(terraform output -raw instance_public_ip) << EOF
           sudo apt update
           sudo apt install -y python3-pip
           pip3 install fastapi uvicorn --user
           pip3 install boto3 --user
-          nohup ~/.local/bin/uvicorn main:app --host 0.0.0.0 --port 8000 &
+          nohup ~/.local/bin/uvicorn main:app --host 0.0.0.0 --port 8000 > fastapi.log 2>&1 &
         EOF
