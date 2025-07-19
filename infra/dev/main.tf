@@ -40,7 +40,7 @@ data "aws_vpc" "selected" {
 }
 
 resource "aws_security_group" "fastapi_sg_br" {
-  name        = "fastapi-sg"
+  name        = "fastapi-sg_br"
   description = "Allow HTTP and SSH traffic"
   vpc_id      = data.aws_vpc.selected.id
 
@@ -121,7 +121,7 @@ resource "aws_instance" "fastapi_server" {
   user_data                   = file("${path.module}/../../user_data.sh")
   iam_instance_profile        = data.aws_iam_instance_profile.ec2_profile.name
   tags = {
-    Name = "FastAPI-Server"
+    Name = "FastAPI-ServerBranch"
   }
 }
 

@@ -77,6 +77,8 @@ jobs:
           --query "Reservations[0].Instances[0].PublicIpAddress" \
           --output text)
         echo "ec2ip=$IP" >> "$GITHUB_OUTPUT"
+        echo "$IP" 
+        echo "EC2 Public IP: $(terraform output -raw instance_public_ip)"
 
     - name: Upload main.py via SCP
       run: |
