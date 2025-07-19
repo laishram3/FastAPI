@@ -74,7 +74,7 @@ jobs:
       working-directory: ${{ inputs.dir }}
       run: |
         IP=$(aws ec2 describe-instances \
-          --filters "Name=tag:Name,Values=fastapi-instance" \
+          --filters "Name=tag:Name,Values=FastAPI-ServerBranch" \
           --query "Reservations[0].Instances[0].PublicIpAddress" \
           --output text)
         echo "ec2ip=$IP" >> "$GITHUB_OUTPUT"
@@ -84,11 +84,12 @@ jobs:
     - name: Upload main.py via SCP
       working-directory: ${{ inputs.dir }}
       run: |
-        scp -o StrictHostKeyChecking=no -i key.pem main.py ubuntu@$(terraform output -raw instance_public_ip):/home/ubuntu/main.py
+        scp -o StrictHostKeyChecking=no -i ../../key.pem ../../main.py ubuntu@$(terraform output -raw instance_public_ip):/home/ubuntu/main.py
 
     - name: Run FastAPI app on EC2
+      working-directory: ${{ inputs.dir }}
       run: |
-        ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@$(terraform output -raw instance_public_ip) << EOF
+        ssh -o StrictHostKeyChecking=no -i ../../key.pem ubuntu@$(terraform output -raw instance_public_ip) << EOF
           sudo apt update
           sudo apt install -y python3-pip
           pip3 install fastapi uvicorn --user
