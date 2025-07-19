@@ -71,6 +71,7 @@ jobs:
 
     - name: Get EC2 Public IP
       id: get_ip
+      working-directory: ${{ inputs.dir }}
       run: |
         IP=$(aws ec2 describe-instances \
           --filters "Name=tag:Name,Values=fastapi-instance" \
@@ -81,6 +82,7 @@ jobs:
         echo "EC2 Public IP: $(terraform output -raw instance_public_ip)"
 
     - name: Upload main.py via SCP
+      working-directory: ${{ inputs.dir }}
       run: |
         scp -o StrictHostKeyChecking=no -i key.pem main.py ubuntu@$(terraform output -raw instance_public_ip):/home/ubuntu/main.py
 
