@@ -119,7 +119,7 @@ resource "aws_instance" "fastapi_server" {
   security_groups             = [aws_security_group.fastapi_sg_br.id]
   associate_public_ip_address = true
   user_data                   = file("${path.module}/../../user_data.sh")
-  iam_instance_profile        = "aws_iam_role_policy_attachment"
+  iam_instance_profile        = "PermenantDynamosing"
   tags = {
     Name = "FastAPI-ServerBranch"
   }
