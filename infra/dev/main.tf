@@ -102,9 +102,9 @@ resource "aws_security_group" "fastapi_sg_br" {
 #   role = aws_iam_role.ec2_role.name
 # }
 
-data "aws_iam_instance_profile" "ec2_profile" {
-  name = "fastapi_ec2_profilee"
-}
+# data "aws_iam_instance_profile" "ec2_profile" {
+#   name = "fastapi_ec2_profilee"
+# }
 
 data "aws_subnet" "public_subnet" {
   id = "subnet-02d3502524c763556" 
@@ -119,7 +119,7 @@ resource "aws_instance" "fastapi_server" {
   security_groups             = [aws_security_group.fastapi_sg_br.id]
   associate_public_ip_address = true
   user_data                   = file("${path.module}/../../user_data.sh")
-  iam_instance_profile        = data.aws_iam_instance_profile.ec2_profile.name
+  iam_instance_profile        = "aws_iam_role_policy_attachment"
   tags = {
     Name = "FastAPI-ServerBranch"
   }
